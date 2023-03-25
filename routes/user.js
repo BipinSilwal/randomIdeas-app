@@ -51,20 +51,25 @@ userRouter.post('/', async (req, res) => {
 
 userRouter.put('/:id', async (req, res) => {
   try {
-    const user = await Idea.findByIdAndUpdate(
-      req.params.id,
-      {
-        $set: {
-          text: req.body.text,
-          tag: req.body.tag,
-        },
-      },
-      {
-        new: true,
-      }
-    );
+    const user = await Idea.findById(req.params.id);
 
-    res.status(200).json({ success: true, data: user });
+    if (user.username === req.body.username) {
+      const userUpdated = await Idea.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            text: req.body.text,
+            tag: req.body.tag,
+          },
+        },
+        {
+          new: true,
+        }
+      );
+
+      return res.status(200).json({ success: true, data: userUpdated });
+    }
+    res.status(403).json({ success: false, error: 'access denied!!' });
   } catch (error) {
     res.status(404).json({ success: 'false', error: 'No such resource' });
   }
@@ -72,8 +77,13 @@ userRouter.put('/:id', async (req, res) => {
 
 userRouter.delete('/:id', async (req, res) => {
   try {
-    const user = await Idea.findByIdAndDelete(req.params.id);
-    res.status(200).json({ success: true, message: 'user deleted!!' });
+    const idea = await Idea.findById(req.params.id);
+
+    if (idea.username === req.body.username) {
+      const user = await Idea.findByIdAndDelete(req.params.id);
+      return res.status(200).json({ success: true, message: 'user deleted!!' });
+    }
+    res.status(500).json({ success: false, message: ' access denied!' });
   } catch (error) {
     res.json({ success: false, message: 'no such user' });
   }
